@@ -10,18 +10,18 @@ tfp = tfp.substrates.jax
 tfd = tfp.distributions
 
 
-def Normal():
+def Normal(loc=0.,scale=1.):
     """
     Returns:
         A function mapping ``(rng, input_dim)`` to a ``(params, log_pdf, sample)`` triplet.
     """
-
+    dist = tfd.Normal(loc=loc, scale=scale)
     def init_fun(rng, input_dim):
         def log_pdf(params, inputs):
-            return norm.logpdf(inputs).sum(1)
+            return dist.log_prob(inputs).sum(1)
 
         def sample(rng, params, num_samples=1):
-            return random.normal(rng, (num_samples, input_dim))
+            return dist.sample((num_samples, input_dim), rng)
 
         return (), log_pdf, sample
 
