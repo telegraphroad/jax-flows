@@ -2,6 +2,12 @@ import jax.numpy as np
 from jax import random
 from jax.scipy.special import logsumexp
 from jax.scipy.stats import norm, multivariate_normal
+import tensorflow_probability as tfp 
+from jax.config import config
+config.update("jax_enable_x64", True)
+
+tfp = tfp.substrates.jax
+tfd = tfp.distributions
 
 
 def Normal():
@@ -16,6 +22,27 @@ def Normal():
 
         def sample(rng, params, num_samples=1):
             return random.normal(rng, (num_samples, input_dim))
+
+        return (), log_pdf, sample
+
+    return init_fun
+
+
+
+def GenNormal(loc=0.,scale=1.,power=2.):
+    """
+    Returns:
+        A function mapping ``(rng, input_dim)`` to a ``(params, log_pdf, sample)`` triplet.
+    """
+
+    def init_fun(rng, input_dim):
+        dist = tfd.GeneralizedNormal(loc=loc, scale=scale, power=power)
+        
+        def log_pdf(params, inputs):
+            return dist.log_prob(inputs).sum(1)
+
+        def sample(rng, params, num_samples=1):
+            return dist.sample((num_samples, input_dim), rng)
 
         return (), log_pdf, sample
 
